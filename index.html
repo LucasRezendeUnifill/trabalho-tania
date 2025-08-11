@@ -1,137 +1,98 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt-br">
-<meta charset="utf-8">
-<title>Bisseção – simples</title>
-<style>
-  body{font-family:system-ui,Arial;margin:20px}
-  input,button{padding:6px 8px}
-  table{border-collapse:collapse;width:100%;margin-top:10px}
-  th,td{border:1px solid #ccc;padding:6px 8px;text-align:right}
-  th:nth-child(1),td:nth-child(1){text-align:center}
-  .row{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0}
-  .stat{display:flex;gap:10px;margin-top:8px}
-  .stat div{border:1px solid #ddd;padding:6px 8px}
-</style>
+<head>
+  <meta charset="UTF-8">
+  <title>Método da Bisseção</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f5f5f5;
+      padding: 40px;
+    }
 
-<h1>Método da Bisseção (f(x)=0)</h1>
+    h2 {
+      color: #333;
+      margin-bottom: 20px;
+    }
 
-<div class="row">
-  <label>f(x): <input id="fx" type="text" value="x**3 - 9*x + 3" size="30"></label>
-</div>
-<div class="row">
-  <label>A: <input id="a" type="number" step="any" value="-10"></label>
-  <label>B: <input id="b" type="number" step="any" value="10"></label>
-  <label>Precisão ε: <input id="tol" type="number" step="any" value="0.0001"></label>
-  <label>Máx. iterações: <input id="maxit" type="number" value="100"></label>
-</div>
-<div class="row">
-  <strong>Critério de parada:</strong>
-  <label><input type="radio" name="crit" value="fx" checked> |f(xm)| &lt; ε</label>
-  <label><input type="radio" name="crit" value="width"> |b - a| &lt; ε</label>
-  <label><input type="radio" name="crit" value="rel"> |xm - xₙ₋₁| / |xm| &lt; ε</label>
-  <label><input type="radio" name="crit" value="abs"> |xm - xₙ₋₁| &lt; ε</label>
-</div>
-<div class="row">
-  <button id="run">Calcular</button>
-  <button id="step">Passo</button>
-  <button id="reset">Reiniciar</button>
-</div>
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: bold;
+    }
 
-<div class="stat">
-  <div>Resultado X*: <span id="res">—</span></div>
-  <div>Erro: <span id="err">—</span></div>
-  <div>Iterações: <span id="its">0</span></div>
-</div>
+    input {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      box-sizing: border-box;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
 
-<table>
-  <thead>
-    <tr>
-      <th>#</th><th>a</th><th>f(a)</th><th>b</th><th>f(b)</th><th>xm</th><th>f(xm)</th><th>erro</th>
-    </tr>
-  </thead>
-  <tbody id="tbody"></tbody>
-</table>
+    button {
+      margin-top: 20px;
+      padding: 10px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+    }
 
-<p><small>Dica: escreva a fórmula com sintaxe JS. Ex.: <code>x**2 - 2</code>, <code>sin(x)</code>, <code>exp(x)-4</code>, <code>log(x+5)</code>. Radianos.</small></p>
+    button:hover {
+      background-color: #0056b3;
+    }
 
-<script>
-function buildFunction(expr){
-  const body = `with(Math){return (${expr});}`;
-  return new Function("x", body);
-}
-function sgn(v){return v===0?0:(v>0?1:-1);}
-function fmt(x){
-  if(!isFinite(x)) return "NaN";
-  return Number(x).toPrecision(10);
-}
+    #resultado {
+      margin-top: 30px;
+      background-color: white;
+      padding: 20px;
+      border-radius: 5px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    }
 
-let S=null; // estado
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
 
-function start(){
-  const fxStr = document.getElementById('fx').value.trim();
-  const a0 = Number(document.getElementById('a').value);
-  const b0 = Number(document.getElementById('b').value);
-  const tol = Math.abs(Number(document.getElementById('tol').value)) || 1e-4;
-  const maxit = Math.max(1, Number(document.getElementById('maxit').value));
-  const crit = document.querySelector('input[name="crit"]:checked').value;
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: center;
+    }
 
-  if(!(a0<b0)) return alert("Requer A < B.");
-  let f; try{ f = buildFunction(fxStr); }catch{ return alert("Expressão inválida."); }
-  const fa = f(a0), fb = f(b0);
-  if(sgn(fa)===sgn(fb)) return alert("f(A) e f(B) têm o mesmo sinal. Escolha outro intervalo.");
+    th {
+      background-color: #f0f0f0;
+    }
+  </style>
+</head>
+<body>
 
-  document.getElementById('tbody').innerHTML = "";
-  setStatus("—","—",0);
-  S = {f,a:a0,b:b0,fa,fb,tol,maxit,crit,it:0,prev:null,done:false};
-}
+  <h2>Método da Bisseção</h2>
 
-function step(){
-  if(!S){ start(); if(!S) return; }
-  if(S.done) return;
+  <form id="form-bissecao">
+    <label for="funcao">Função f(x):</label>
+    <input type="text" id="funcao" placeholder="Ex: x**3 - 9*x + 3">
 
-  const {f,crit,tol,maxit} = S;
-  let {a,b,fa,fb,prev,it} = S;
+    <label for="a">Valor de a:</label>
+    <input type="number" id="a" step="any">
 
-  const xm = (a+b)/2, fxm = f(xm);
-  let err = Infinity;
-  if(crit==="fx") err = Math.abs(fxm);
-  else if(crit==="width") err = Math.abs(b-a);
-  else if(crit==="rel") err = (prev==null)?Infinity:Math.abs((xm-prev)/(xm||1));
-  else if(crit==="abs") err = (prev==null)?Infinity:Math.abs(xm-prev);
+    <label for="b">Valor de b:</label>
+    <input type="number" id="b" step="any">
 
-  addRow(it+1,a,fa,b,fb,xm,fxm,err);
+    <label for="erro">Erro (Ex: 0.001):</label>
+    <input type="number" id="erro" step="any">
 
-  const stop = (err < tol) || (it+1 >= maxit) || (fxm===0);
-  if(stop){
-    S.done = true;
-    setStatus(xm, err, it+1);
-  }else{
-    if(sgn(fa)*sgn(fxm) <= 0){ b=xm; fb=fxm; } else { a=xm; fa=fxm; }
-    Object.assign(S,{a,b,fa,fb,prev:xm,it:it+1});
-  }
-}
+    <button type="button">Calcular</button>
+  </form>
 
-function runAll(){ start(); if(!S) return; while(!S.done) step(); }
+  <div id="resultado">
+    <!-- Os resultados da bisseção aparecerão aqui futuramente -->
+  </div>
 
-function addRow(n,a,fa,b,fb,xm,fxm,err){
-  const tr = document.createElement('tr');
-  [n,fmt(a),fmt(fa),fmt(b),fmt(fb),fmt(xm),fmt(fxm), isFinite(err)?fmt(err):"—"]
-    .forEach(v=>{ const td=document.createElement('td'); td.textContent=v; tr.appendChild(td); });
-  document.getElementById('tbody').appendChild(tr);
-  tr.scrollIntoView({block:"end"});
-}
-
-function setStatus(x,e,i){
-  document.getElementById('res').textContent = (x==="—")?"—":fmt(x);
-  document.getElementById('err').textContent = (e==="—")?"—":fmt(e);
-  document.getElementById('its').textContent = i;
-}
-
-document.getElementById('run').onclick = runAll;
-document.getElementById('step').onclick = step;
-document.getElementById('reset').onclick = ()=>{
-  S=null; document.getElementById('tbody').innerHTML=""; setStatus("—","—",0);
-};
-document.getElementById('fx').addEventListener('keydown', e=>{ if(e.key==="Enter") runAll(); });
-</script>
+</body>
 </html>
