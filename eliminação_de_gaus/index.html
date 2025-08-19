@@ -1,1 +1,71 @@
 
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eliminação Gaussiana</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1 {
+            text-align: center;
+        }
+        label {
+            font-weight: bold;
+        }
+        select, button {
+            margin: 10px 0;
+        }
+        table {
+            margin-top: 20px;
+            border-collapse: collapse;
+            width: 100%;
+        }
+        table, th, td {
+            border: 1px solid #000;
+        }
+        th, td {
+            padding: 10px;
+            text-align: center;
+        }
+        input {
+            width: 50px;
+            text-align: center;
+        }
+        .result {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Eliminação Gaussiana - Resolução de Sistemas Lineares</h1>
+
+    <label for="size">Escolha o tamanho da matriz:</label>
+    <select id="size">
+        <option value="2">2x2</option>
+        <option value="3">3x3</option>
+        <option value="4">4x4</option>
+        <option value="5">5x5</option>
+    </select>
+
+    <div id="matrixInputs">
+        <!-- A matriz será gerada aqui -->
+    </div>
+
+    <button>Resolver Sistema</button>
+
+    <div class="result">
+        <h3>Resultado:</h3>
+        <p id="output">Soluções aparecerão aqui...</p>
+    </div>
+
+    <script>
+        // Aqui seria o JavaScript para gerar as entradas dinâmicas e resolver
+    </script>
+
+</body>
+</html>
